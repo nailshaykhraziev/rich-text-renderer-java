@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.contentful.java.cda.rich.CDARichBlock;
 import com.contentful.java.cda.rich.CDARichList;
 import com.contentful.java.cda.rich.CDARichListItem;
@@ -25,107 +27,117 @@ import javax.annotation.Nullable;
 
 public class ListRenderer extends BlockRenderer {
 
-  private final Map<CharSequence, Decorator> decoratorBySymbolMap = new HashMap<>();
-  private final List<Decorator> decorators = new ArrayList<>();
+    private final Map<CharSequence, Decorator> decoratorBySymbolMap = new HashMap<>();
+    private final List<Decorator> decorators = new ArrayList<>();
 
-  public ListRenderer(@Nonnull AndroidProcessor<View> processor, @Nonnull Decorator... decorators) {
-    super(processor);
+    public ListRenderer(@Nonnull AndroidProcessor<View> processor, @Nonnull Decorator... decorators) {
+        super(processor);
 
-    this.decorators.addAll(Arrays.asList(decorators));
+        this.decorators.addAll(Arrays.asList(decorators));
 
-    for (final Decorator decorator : decorators) {
-      this.decoratorBySymbolMap.put(decorator.getSymbol().toString(), decorator);
-    }
-  }
-
-  @Override public boolean canRender(@Nullable AndroidContext context, @Nonnull CDARichNode node) {
-    if (context != null && node instanceof CDARichListItem) {
-      final CDARichList list = context.getTopListOfPath();
-      if (list != null) {
-        return decoratorBySymbolMap.containsKey(list.getDecoration().toString());
-      }
-    }
-
-    return false;
-  }
-
-  @Nullable @Override public View render(@Nonnull AndroidContext context, @Nonnull CDARichNode node) {
-    final CDARichBlock block = (CDARichBlock) node;
-    final ViewGroup result = (ViewGroup) context.getInflater().inflate(R.layout.rich_list_layout, null, false);
-    provideDecoration(context, result, node);
-
-    final ViewGroup content = result.findViewById(R.id.rich_content);
-
-    TextView lastTextView = null;
-    for (final CDARichNode childNode : block.getContent()) {
-      final View childView = processor.process(context, childNode);
-
-      if (childView != null) {
-        if (childView instanceof TextView) {
-          final TextView childTextView = (TextView) childView;
-          if (lastTextView != null) {
-            lastTextView.setText(
-                new SpannableStringBuilder(lastTextView.getText()).append(childTextView.getText())
-            );
-          } else {
-            lastTextView = childTextView;
-            content.addView(childView);
-          }
-        } else {
-          content.addView(childView);
+        for (final Decorator decorator : decorators) {
+            this.decoratorBySymbolMap.put(decorator.getSymbol().toString(), decorator);
         }
-      }
     }
 
-    return result;
-  }
+    @Override
+    public boolean canRender(@Nullable AndroidContext context, @Nonnull CDARichNode node) {
+        if (context != null && node instanceof CDARichListItem) {
+            final CDARichList list = context.getTopListOfPath();
+            if (list != null) {
+                return decoratorBySymbolMap.containsKey(list.getDecoration().toString());
+            }
+        }
 
-  protected void provideDecoration(@Nonnull AndroidContext context, @Nonnull ViewGroup group, @Nonnull CDARichNode node) {
-    final TextView decoration = group.findViewById(R.id.rich_list_decoration);
-
-    final List<CDARichNode> path = context.getPath();
-    CDARichList list = context.getTopListOfPath();
-    final Decorator currentDecorator;
-    final int childIndex;
-    if (list == null) {
-      list = (CDARichList) node;
-      childIndex = 0;
-      currentDecorator = decoratorBySymbolMap.get(list.getDecoration());
-    } else {
-      final int listIndex = path.indexOf(list);
-      final int listItemIndexOnPath = listIndex + 1;
-      childIndex = list.getContent().indexOf(path.get(listItemIndexOnPath));
-
-      final int nestedListCount = (int) (getListOfTypeCount(context, list)) % Integer.MAX_VALUE;
-
-      final Decorator initialDecorator = decoratorBySymbolMap.get(list.getDecoration().toString());
-      final int initialDecoratorIndex = decorators.indexOf(initialDecorator);
-      final int currentPosition = (initialDecoratorIndex + nestedListCount) % decorators.size();
-      currentDecorator = decorators.get(currentPosition);
+        return false;
     }
 
+    @Nullable
+    @Override
+    public View render(@Nonnull AndroidContext context, @Nonnull CDARichNode node) {
+        final CDARichBlock block = (CDARichBlock) node;
+        final ViewGroup result = (ViewGroup) context.getInflater().inflate(R.layout.rich_list_layout, null, false);
+        provideDecoration(context, result, node);
 
-    decoration.setText(currentDecorator.decorate(childIndex + 1));
-  }
+        final ViewGroup content = result.findViewById(R.id.rich_content);
 
-  /**
-   * Count lists on the path.
-   *
-   * @param context where is the path stored in? The context!
-   * @param list    the list to be listed.
-   * @return the number of lists of the supported type.
-   */
-  private long getListOfTypeCount(@Nonnull AndroidContext context, CDARichList list) {
-    if (context.getPath() == null) {
-      return 0;
+        TextView lastTextView = null;
+        for (final CDARichNode childNode : block.getContent()) {
+            final View childView = processor.process(context, childNode);
+
+            if (childView != null) {
+                if (childView instanceof TextView) {
+                    final TextView childTextView = (TextView) childView;
+                    if (context.getConfig() != null) {
+                        int color = ContextCompat.getColor(context.getAndroidContext(), context.getConfig().getTextColor());
+                        childTextView.setTextColor(color);
+                        if (lastTextView != null) {
+                            lastTextView.setTextColor(color);
+                        }
+                    }
+                    if (lastTextView != null) {
+                        lastTextView.setText(
+                                new SpannableStringBuilder(lastTextView.getText()).append(childTextView.getText())
+                        );
+                    } else {
+                        lastTextView = childTextView;
+                        content.addView(childView);
+                    }
+                } else {
+                    content.addView(childView);
+                }
+            }
+        }
+
+        return result;
     }
-    int count = 0;
-    for (CDARichNode node: context.getPath()) {
-      if (node instanceof CDARichList && ((CDARichList) node).getDecoration().equals(list.getDecoration())) {
-        count++;
-      }
+
+    protected void provideDecoration(@Nonnull AndroidContext context, @Nonnull ViewGroup group, @Nonnull CDARichNode node) {
+        final TextView decoration = group.findViewById(R.id.rich_list_decoration);
+
+        final List<CDARichNode> path = context.getPath();
+        CDARichList list = context.getTopListOfPath();
+        final Decorator currentDecorator;
+        final int childIndex;
+        if (list == null) {
+            list = (CDARichList) node;
+            childIndex = 0;
+            currentDecorator = decoratorBySymbolMap.get(list.getDecoration());
+        } else {
+            final int listIndex = path.indexOf(list);
+            final int listItemIndexOnPath = listIndex + 1;
+            childIndex = list.getContent().indexOf(path.get(listItemIndexOnPath));
+
+            final int nestedListCount = (int) (getListOfTypeCount(context, list)) % Integer.MAX_VALUE;
+
+            final Decorator initialDecorator = decoratorBySymbolMap.get(list.getDecoration().toString());
+            final int initialDecoratorIndex = decorators.indexOf(initialDecorator);
+            final int currentPosition = (initialDecoratorIndex + nestedListCount) % decorators.size();
+            currentDecorator = decorators.get(currentPosition);
+        }
+
+
+        decoration.setText(currentDecorator.decorate(childIndex + 1));
     }
-    return count;
-  }
+
+    /**
+     * Count lists on the path.
+     *
+     * @param context where is the path stored in? The context!
+     * @param list    the list to be listed.
+     * @return the number of lists of the supported type.
+     */
+    private long getListOfTypeCount(@Nonnull AndroidContext context, CDARichList list) {
+        if (context.getPath() == null) {
+            return 0;
+        }
+        int count = 0;
+        for (CDARichNode node : context.getPath()) {
+            if (node instanceof CDARichList && ((CDARichList) node).getDecoration().equals(list.getDecoration())) {
+                count++;
+            }
+        }
+        return count;
+    }
 
 }

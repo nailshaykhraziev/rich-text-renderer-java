@@ -11,15 +11,20 @@ import kotlinx.android.synthetic.main.fragment_page.*
 import kotlinx.android.synthetic.main.fragment_page.view.*
 
 class PageFragment : Fragment() {
+
     class Holder(view: View) : RecyclerView.ViewHolder(view)
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val rootView = inflater.inflate(R.layout.fragment_page, container, false)
         rootView.page_recycler.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         rootView.page_recycler.adapter =
-                RichCharSequenceAdapter(arguments?.getInt(ARG_PAGE_INDEX, 0)
-                        ?: 0, context!!)
+            RichCharSequenceAdapter(
+                arguments?.getInt(ARG_PAGE_INDEX, 0)
+                    ?: 0, requireContext()
+            )
 
         rootView.main_native_check.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
@@ -34,17 +39,19 @@ class PageFragment : Fragment() {
 
     private fun onNativeViewProcessingSelected() {
         fragment_page.page_recycler.adapter =
-                RichNativeViewAdapter(
-                        arguments?.getInt(ARG_PAGE_INDEX, 0) ?: 0,
-                        context!!)
+            RichNativeViewAdapter(
+                arguments?.getInt(ARG_PAGE_INDEX, 0) ?: 0,
+                requireContext()
+            )
 
     }
 
     private fun onCharSequenceProcessingSelected() {
         fragment_page.page_recycler.adapter =
-                RichCharSequenceAdapter(
-                        arguments?.getInt(ARG_PAGE_INDEX, 0) ?: 0,
-                        context!!)
+            RichCharSequenceAdapter(
+                arguments?.getInt(ARG_PAGE_INDEX, 0) ?: 0,
+                requireContext()
+            )
     }
 
     companion object {

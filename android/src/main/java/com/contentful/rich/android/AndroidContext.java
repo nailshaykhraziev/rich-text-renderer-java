@@ -18,73 +18,93 @@ import javax.annotation.Nullable;
  */
 public class AndroidContext extends Context<List<CDARichNode>> {
 
-  private final android.content.Context androidContext;
-  private final LayoutInflater inflater;
-  private final List<CDARichNode> path = new ArrayList<>();
+    private final android.content.Context androidContext;
+    private final LayoutInflater inflater;
+    private final List<CDARichNode> path = new ArrayList<>();
+    @Nullable
+    private final AndroidConfig config;
 
-  /**
-   * Initialize this rich text rendering context by the help of an android context
-   *
-   * @param androidContext this android context will be used for android specific tasks renderers are executing.
-   */
-  public AndroidContext(android.content.Context androidContext) {
-    this.androidContext = androidContext;
-    this.inflater = LayoutInflater.from(androidContext);
-  }
-
-  /**
-   * @return the Android context provided.
-   */
-  public android.content.Context getAndroidContext() {
-    return androidContext;
-  }
-
-  /**
-   * @return layout inflater for inflating layouts.
-   */
-  public LayoutInflater getInflater() {
-    return inflater;
-  }
-
-  /**
-   * This method is called once a block of rich text is encountered.
-   *
-   * @param block encountered block.
-   */
-  @Override public void onBlockEntered(@Nonnull CDARichBlock block) {
-    super.onBlockEntered(block);
-
-    path.add(block);
-  }
-
-  /**
-   * Once an encountered block is exited, this method gets called.
-   *
-   * @param block exited block.
-   */
-  @Override public void onBlockExited(@Nonnull CDARichBlock block) {
-    super.onBlockExited(block);
-
-    path.remove(path.size() - 1);
-  }
-
-  /**
-   * @return the path of nodes up to the root node.
-   */
-  @Nullable @Override public List<CDARichNode> getPath() {
-    return path;
-  }
-
-  /**
-   * @return the first rich list of the path.
-   */
-  @Nullable public CDARichList getTopListOfPath() {
-    for (int i = path.size() - 2; i >= 0; --i) {
-      final CDARichNode node = path.get(i);
-      if (node instanceof CDARichList) {
-        return (CDARichList) node;
-      }
+    /**
+     * Initialize this rich text rendering context by the help of an android context
+     *
+     * @param androidContext this android context will be used for android specific tasks renderers are executing.
+     */
+    public AndroidContext(android.content.Context androidContext) {
+        this(androidContext, null);
     }
-    return null;
-  }
+
+    public AndroidContext(android.content.Context androidContext, @Nullable AndroidConfig config) {
+        this.androidContext = androidContext;
+        this.inflater = LayoutInflater.from(androidContext);
+        this.config = config;
+    }
+
+    /**
+     * @return the Android context provided.
+     */
+    public android.content.Context getAndroidContext() {
+        return androidContext;
+    }
+
+    /**
+     * @return layout inflater for inflating layouts.
+     */
+    public LayoutInflater getInflater() {
+        return inflater;
+    }
+
+    /**
+     * @return configuration params
+     */
+    @Nullable
+    public AndroidConfig getConfig() {
+        return config;
+    }
+
+    /**
+     * This method is called once a block of rich text is encountered.
+     *
+     * @param block encountered block.
+     */
+    @Override
+    public void onBlockEntered(@Nonnull CDARichBlock block) {
+        super.onBlockEntered(block);
+
+        path.add(block);
+    }
+
+    /**
+     * Once an encountered block is exited, this method gets called.
+     *
+     * @param block exited block.
+     */
+    @Override
+    public void onBlockExited(@Nonnull CDARichBlock block) {
+        super.onBlockExited(block);
+
+        path.remove(path.size() - 1);
+    }
+
+    /**
+     * @return the path of nodes up to the root node.
+     */
+    @Nullable
+    @Override
+    public List<CDARichNode> getPath() {
+        return path;
+    }
+
+    /**
+     * @return the first rich list of the path.
+     */
+    @Nullable
+    public CDARichList getTopListOfPath() {
+        for (int i = path.size() - 2; i >= 0; --i) {
+            final CDARichNode node = path.get(i);
+            if (node instanceof CDARichList) {
+                return (CDARichList) node;
+            }
+        }
+        return null;
+    }
 }
