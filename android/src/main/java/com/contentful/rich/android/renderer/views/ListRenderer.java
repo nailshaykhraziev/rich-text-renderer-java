@@ -116,7 +116,10 @@ public class ListRenderer extends BlockRenderer {
             currentDecorator = decorators.get(currentPosition);
         }
 
-
+        if (context.getConfig() != null) {
+            int color = ContextCompat.getColor(context.getAndroidContext(), context.getConfig().getTextColor());
+            decoration.setTextColor(color);
+        }
         decoration.setText(currentDecorator.decorate(childIndex + 1));
     }
 

@@ -49,8 +49,10 @@ class TextRenderer(
      */
     override fun render(@Nonnull context: AndroidContext, @Nonnull node: CDARichNode): View? {
         val richText = node as CDARichText
+        val textContent = SpannableStringBuilder(richText.text)
+        val result = context.inflater.inflate(R.layout.rich_text_layout, null)
+        val content: TextView = result.findViewById(R.id.rich_content)
 
-        val content = TextView(context.androidContext)
         context.config?.also { config ->
             content.setTextColor(ContextCompat.getColor(context.androidContext, config.textColor))
 
@@ -59,8 +61,6 @@ class TextRenderer(
                 content.typeface = ResourcesCompat.getFont(context.androidContext, it)
             }
         }
-
-        val textContent = SpannableStringBuilder(richText.text)
         richText.marks.forEach { mark ->
             val span = when (mark) {
                 is CDARichMarkUnderline -> UnderlineSpan()
@@ -80,6 +80,7 @@ class TextRenderer(
             }
         }
         content.text = textContent
-        return content
+
+        return result
     }
 }
