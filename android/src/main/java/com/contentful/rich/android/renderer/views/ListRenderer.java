@@ -1,8 +1,10 @@
 package com.contentful.rich.android.renderer.views;
 
 import android.text.SpannableStringBuilder;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -119,6 +121,21 @@ public class ListRenderer extends BlockRenderer {
         if (context.getConfig() != null) {
             int color = ContextCompat.getColor(context.getAndroidContext(), context.getConfig().getTextColor());
             decoration.setTextColor(color);
+
+            if (context.getConfig().getMarginTop() > 0) {
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                float px = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        context.getConfig().getMarginTop(),
+                        context.getAndroidContext().getResources().getDisplayMetrics()
+                );
+
+                layoutParams.setMargins(0, Math.round(px), 0, 0);
+                decoration.setLayoutParams(layoutParams);
+            }
         }
         decoration.setText(currentDecorator.decorate(childIndex + 1));
     }
