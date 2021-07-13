@@ -125,7 +125,7 @@ public class ListRenderer extends BlockRenderer {
 
             if (context.getConfig().getMarginTop() > 0) {
                 RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 );
                 float px = TypedValue.applyDimension(

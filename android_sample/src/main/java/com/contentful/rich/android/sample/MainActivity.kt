@@ -39,6 +39,7 @@ class MainActivity(
 
         spinner.onItemSelectedListener = object : OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                container.removeAllViews()
                 supportFragmentManager.beginTransaction()
                         .replace(R.id.container, PageFragment.newInstance(position))
                         .commit()
@@ -50,7 +51,7 @@ class MainActivity(
 
     private fun loadPageFromContentful() {
         GlobalScope.launch {
-            val document = client
+            /*val document = client
                     .fetch(CDAEntry::class.java)
                     .withContentType("rich")
                     .where("fields.name", Matches, "simple")
@@ -73,7 +74,7 @@ class MainActivity(
                                     RemoveToDeepNesting(10),
                                     RemoveEmpties()
                             ).simplify(document) as CDARichDocument)
-            )
+            )*/
 
             runOnUiThread {
                 spinner.prompt = PAGES[0].name

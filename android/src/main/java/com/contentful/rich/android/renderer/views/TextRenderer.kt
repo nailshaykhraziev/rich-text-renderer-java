@@ -3,7 +3,6 @@ package com.contentful.rich.android.renderer.views
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.StyleSpan
 import android.text.style.TextAppearanceSpan
@@ -59,6 +58,19 @@ class TextRenderer(
 
             config.font?.also {
                 content.typeface = ResourcesCompat.getFont(context.androidContext, it)
+            }
+            config.marginTop.takeIf { it > 0 }?.let {
+                result.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    val margin = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        it.toFloat(),
+                        context.androidContext.resources.displayMetrics
+                    )
+                    setMargins(0, margin.toInt(), 0, 0)
+                }
             }
         }
         richText.marks.forEach { mark ->

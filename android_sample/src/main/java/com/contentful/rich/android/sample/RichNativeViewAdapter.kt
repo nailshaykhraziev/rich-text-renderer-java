@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.contentful.java.cda.CDAAsset
 import com.contentful.java.cda.CDAEntry
 import com.contentful.java.cda.rich.CDARichHyperLink
+import com.contentful.rich.android.AndroidConfig
 import com.contentful.rich.android.AndroidContext
 import com.contentful.rich.android.AndroidProcessor
 import kotlinx.android.synthetic.main.sample_item.view.*
@@ -16,13 +17,16 @@ import kotlinx.android.synthetic.main.sample_item.view.*
 class RichNativeViewAdapter(pageIndex: Int, private val androidContext: Context) : RecyclerView.Adapter<PageFragment.Holder>() {
     private val page: Page = PAGES[pageIndex]
     private val inflater: LayoutInflater = LayoutInflater.from(androidContext)
+    private val context = AndroidContext(androidContext, AndroidConfig(
+        textColor = android.R.color.holo_red_dark,
+        marginTop = 8
+    ))
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageFragment.Holder =
             PageFragment.Holder(inflater.inflate(R.layout.sample_item, parent, false))
 
     override fun onBindViewHolder(holder: PageFragment.Holder, position: Int) {
         val item = page.document.content[position]
-        val context = AndroidContext(androidContext)
 
         val processor = AndroidProcessor.creatingNativeViews()
         processor.overrideRenderer(
@@ -51,8 +55,7 @@ class RichNativeViewAdapter(pageIndex: Int, private val androidContext: Context)
                 }
         )
 
-        val view = processor.process(context, item)
-                ?: TextView(this.androidContext).apply { setText(R.string.error_no_view) }
+        val view = processor.process(context, item) ?: TextView(this.androidContext).apply { setText(R.string.error_no_view) }
 
         holder.itemView.sample_item_card.removeAllViews()
         holder.itemView.sample_item_card.addView(view)
