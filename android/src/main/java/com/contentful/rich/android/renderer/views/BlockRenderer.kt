@@ -27,7 +27,7 @@ open class BlockRenderer(
         val content = result.findViewById<ViewGroup>(R.id.rich_content)
         var lastTextView: TextView? = null
         block.content.forEach { childNode ->
-            val childView = processor.process(context, childNode!!)
+            val childView = processor.process(context, childNode)
             if (childView != null) {
                 when {
                     childView is TextView -> {
@@ -53,7 +53,7 @@ open class BlockRenderer(
 
                             text.setSpan(
                                 span,
-                                lastTextView?.text?.length?.plus(1) ?: 0,
+                                lastTextView?.text?.length ?: 0,
                                 text.length,
                                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                             )
