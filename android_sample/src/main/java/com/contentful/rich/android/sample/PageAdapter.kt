@@ -8,8 +8,9 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.widget.ThemedSpinnerAdapter
 import kotlinx.android.synthetic.main.dropdown_item.view.*
 
-class PageAdapter(context: Context, objects: Array<Page>) :
-        ArrayAdapter<Page>(context, R.layout.appbar_item, objects), ThemedSpinnerAdapter {
+class PageAdapter(
+    context: Context, objects: Array<Page>
+) : ArrayAdapter<Page>(context, R.layout.appbar_item, objects), ThemedSpinnerAdapter {
 
     private val mDropDownHelper: ThemedSpinnerAdapter.Helper = ThemedSpinnerAdapter.Helper(context)
 
