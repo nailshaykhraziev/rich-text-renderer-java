@@ -32,7 +32,7 @@ open class BlockRenderer(
                 when {
                     childView is TextView -> {
                         lastTextView?.let {
-                            it.text = SpannableStringBuilder(it.text).append(" ").append(childView.text)
+                            it.text = SpannableStringBuilder(it.text).append(childView.text)
                         } ?: run {
                             lastTextView = childView
                             content.addView(childView)
