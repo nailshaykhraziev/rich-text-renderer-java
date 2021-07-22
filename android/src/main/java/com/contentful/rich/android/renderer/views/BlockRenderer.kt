@@ -38,13 +38,13 @@ open class BlockRenderer(
                             content.addView(childView)
                         }
                     }
-                    childNode is CDARichHyperLink -> {
+                    childNode is CDARichHyperLink && childNode.data is String -> {
                         val childLayout = childView.findViewById<ViewGroup>(R.id.rich_content)
                         if (childLayout.childCount > 0) {
                             val childTextView = childLayout.getChildAt(0) as TextView
                             val span = UrlSpan(childNode.data as String)
                             val text = lastTextView?.let {
-                                SpannableStringBuilder(it.text).append(" ").append(childTextView.text)
+                                SpannableStringBuilder(it.text).append(childTextView.text)
                             } ?: SpannableStringBuilder(childTextView.text)
 
                             context.config?.linkColor?.let {
