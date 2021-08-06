@@ -25,8 +25,16 @@ open class BlockRenderer(
         val block = node as CDARichBlock
         val result = inflateRichLayout(context, node)
         val content = result.findViewById<ViewGroup>(R.id.rich_content)
+        block.parseBlock(context, content)
+        return result
+    }
+
+    protected fun CDARichBlock.parseBlock(
+        context: AndroidContext,
+        viewGroup: ViewGroup
+    ) {
         var lastTextView: TextView? = null
-        block.content.forEach { childNode ->
+        content.forEach { childNode ->
             val childView = processor.process(context, childNode)
             if (childView != null) {
                 when {
@@ -35,7 +43,7 @@ open class BlockRenderer(
                             it.text = SpannableStringBuilder(it.text).append(childView.text)
                         } ?: run {
                             lastTextView = childView
-                            content.addView(childView)
+                            viewGroup.addView(childView)
                         }
                     }
                     childNode is CDARichHyperLink && childNode.data is String -> {
@@ -64,20 +72,19 @@ open class BlockRenderer(
                             } ?: run {
                                 childTextView.text = text
                                 lastTextView = childTextView
-                                content.addView(childView)
+                                viewGroup.addView(childView)
                             }
                         }
                     }
                     context.path?.size ?: 0 > 1 -> {
                         val indented = context.inflater.inflate(R.layout.rich_indention_layout, null, false)
                         (indented.findViewById<View>(R.id.rich_content) as ViewGroup).addView(childView)
-                        content.addView(indented)
+                        viewGroup.addView(indented)
                     }
-                    else -> content.addView(childView)
+                    else -> viewGroup.addView(childView)
                 }
             }
         }
-        return result
     }
 
     protected open fun inflateRichLayout(
