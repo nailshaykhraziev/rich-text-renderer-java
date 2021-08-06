@@ -1,144 +1,101 @@
-package com.contentful.rich.android.renderer.views;
+package com.contentful.rich.android.renderer.views
 
-import android.text.SpannableStringBuilder;
-import android.util.TypedValue;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.util.TypedValue
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.contentful.java.cda.rich.CDARichBlock
+import com.contentful.java.cda.rich.CDARichList
+import com.contentful.java.cda.rich.CDARichListItem
+import com.contentful.java.cda.rich.CDARichNode
+import com.contentful.rich.android.AndroidContext
+import com.contentful.rich.android.AndroidProcessor
+import com.contentful.rich.android.R
+import com.contentful.rich.android.renderer.listdecorator.Decorator
+import java.util.*
+import kotlin.math.roundToInt
 
-import androidx.core.content.ContextCompat;
+class ListRenderer(
+    processor: AndroidProcessor<View>,
+    vararg decorators: Decorator
+) : BlockRenderer(processor) {
 
-import com.contentful.java.cda.rich.CDARichBlock;
-import com.contentful.java.cda.rich.CDARichList;
-import com.contentful.java.cda.rich.CDARichListItem;
-import com.contentful.java.cda.rich.CDARichNode;
-import com.contentful.rich.android.AndroidContext;
-import com.contentful.rich.android.AndroidProcessor;
-import com.contentful.rich.android.R;
-import com.contentful.rich.android.renderer.listdecorator.Decorator;
+    private val decoratorBySymbolMap: MutableMap<CharSequence, Decorator> = HashMap()
+    private val decorators: MutableList<Decorator> = ArrayList()
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public class ListRenderer extends BlockRenderer {
-
-    private final Map<CharSequence, Decorator> decoratorBySymbolMap = new HashMap<>();
-    private final List<Decorator> decorators = new ArrayList<>();
-
-    public ListRenderer(@Nonnull AndroidProcessor<View> processor, @Nonnull Decorator... decorators) {
-        super(processor);
-
-        this.decorators.addAll(Arrays.asList(decorators));
-
-        for (final Decorator decorator : decorators) {
-            this.decoratorBySymbolMap.put(decorator.getSymbol().toString(), decorator);
+    init {
+        this.decorators.addAll(listOf(*decorators))
+        for (decorator in decorators) {
+            decoratorBySymbolMap[decorator.symbol.toString()] = decorator
         }
     }
 
-    @Override
-    public boolean canRender(@Nullable AndroidContext context, @Nonnull CDARichNode node) {
-        if (context != null && node instanceof CDARichListItem) {
-            final CDARichList list = context.getTopListOfPath();
-            if (list != null) {
-                return decoratorBySymbolMap.containsKey(list.getDecoration().toString());
-            }
-        }
-
-        return false;
+    override fun canRender(
+        context: AndroidContext?,
+        node: CDARichNode
+    ): Boolean = if (node is CDARichListItem) {
+        context?.topListOfPath?.let {
+            decoratorBySymbolMap.containsKey(it.decoration.toString())
+        } ?: false
+    } else {
+        false
     }
 
-    @Nullable
-    @Override
-    public View render(@Nonnull AndroidContext context, @Nonnull CDARichNode node) {
-        final CDARichBlock block = (CDARichBlock) node;
-        final ViewGroup result = (ViewGroup) context.getInflater().inflate(R.layout.rich_list_layout, null, false);
-        provideDecoration(context, result, node);
-
-        final ViewGroup content = result.findViewById(R.id.rich_content);
-
-        TextView lastTextView = null;
-        for (final CDARichNode childNode : block.getContent()) {
-            final View childView = processor.process(context, childNode);
-
-            if (childView != null) {
-                if (childView instanceof TextView) {
-                    final TextView childTextView = (TextView) childView;
-                    if (context.getConfig() != null) {
-                        int color = ContextCompat.getColor(context.getAndroidContext(), context.getConfig().getTextColor());
-                        childTextView.setTextColor(color);
-                        if (lastTextView != null) {
-                            lastTextView.setTextColor(color);
-                        }
-                    }
-                    if (lastTextView != null) {
-                        lastTextView.setText(
-                                new SpannableStringBuilder(lastTextView.getText()).append(childTextView.getText())
-                        );
-                    } else {
-                        lastTextView = childTextView;
-                        content.addView(childView);
-                    }
-                } else {
-                    content.addView(childView);
-                }
-            }
-        }
-
-        return result;
+    override fun render(
+        context: AndroidContext,
+        node: CDARichNode
+    ): View {
+        val block = node as CDARichBlock
+        val result = context.inflater.inflate(R.layout.rich_list_layout, null, false) as ViewGroup
+        provideDecoration(context, result, node)
+        val content = result.findViewById<ViewGroup>(R.id.rich_content)
+        block.parseBlock(context, content)
+        return result
     }
 
-    protected void provideDecoration(@Nonnull AndroidContext context, @Nonnull ViewGroup group, @Nonnull CDARichNode node) {
-        final TextView decoration = group.findViewById(R.id.rich_list_decoration);
-
-        final List<CDARichNode> path = context.getPath();
-        CDARichList list = context.getTopListOfPath();
-        final Decorator currentDecorator;
-        final int childIndex;
-        if (list == null) {
-            list = (CDARichList) node;
-            childIndex = 0;
-            currentDecorator = decoratorBySymbolMap.get(list.getDecoration());
+    private fun provideDecoration(
+        context: AndroidContext,
+        group: ViewGroup,
+        node: CDARichNode?
+    ) {
+        val decoration = group.findViewById<TextView>(R.id.rich_list_decoration)
+        var list = context.topListOfPath
+        val childIndex: Int
+        val currentDecorator: Decorator? = if (list == null) {
+            list = node as CDARichList?
+            childIndex = 0
+            decoratorBySymbolMap[list?.decoration]
         } else {
-            final int listIndex = path.indexOf(list);
-            final int listItemIndexOnPath = listIndex + 1;
-            childIndex = list.getContent().indexOf(path.get(listItemIndexOnPath));
-
-            final int nestedListCount = (int) (getListOfTypeCount(context, list)) % Integer.MAX_VALUE;
-
-            final Decorator initialDecorator = decoratorBySymbolMap.get(list.getDecoration().toString());
-            final int initialDecoratorIndex = decorators.indexOf(initialDecorator);
-            final int currentPosition = (initialDecoratorIndex + nestedListCount) % decorators.size();
-            currentDecorator = decorators.get(currentPosition);
+            val listIndex = context.path?.indexOf(list) ?: 0
+            val listItemIndexOnPath = listIndex + 1
+            childIndex = list.content.indexOf(context.path?.get(listItemIndexOnPath) ?: 0)
+            val nestedListCount = getListOfTypeCount(context, list).toInt() % Int.MAX_VALUE
+            val initialDecorator = decoratorBySymbolMap[list.decoration.toString()]
+            val initialDecoratorIndex = decorators.indexOf(initialDecorator)
+            val currentPosition = (initialDecoratorIndex + nestedListCount) % decorators.size
+            decorators[currentPosition]
         }
-
-        if (context.getConfig() != null) {
-            int color = ContextCompat.getColor(context.getAndroidContext(), context.getConfig().getTextColor());
-            decoration.setTextColor(color);
-
-            if (context.getConfig().getMarginTop() > 0) {
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                );
-                float px = TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        context.getConfig().getMarginTop(),
-                        context.getAndroidContext().getResources().getDisplayMetrics()
-                );
-
-                layoutParams.setMargins(0, Math.round(px), 0, 0);
-                decoration.setLayoutParams(layoutParams);
+        context.config?.also {
+            val color = ContextCompat.getColor(context.androidContext, it.textColor)
+            decoration.setTextColor(color)
+            if (it.marginTop > 0) {
+                val layoutParams = RelativeLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                val px = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    it.marginTop.toFloat(),
+                    context.androidContext.resources.displayMetrics
+                )
+                layoutParams.setMargins(0, px.roundToInt(), 0, 0)
+                decoration.layoutParams = layoutParams
             }
         }
-        decoration.setText(currentDecorator.decorate(childIndex + 1));
+        decoration.text = currentDecorator?.decorate(childIndex + 1)
     }
 
     /**
@@ -148,17 +105,13 @@ public class ListRenderer extends BlockRenderer {
      * @param list    the list to be listed.
      * @return the number of lists of the supported type.
      */
-    private long getListOfTypeCount(@Nonnull AndroidContext context, CDARichList list) {
-        if (context.getPath() == null) {
-            return 0;
-        }
-        int count = 0;
-        for (CDARichNode node : context.getPath()) {
-            if (node instanceof CDARichList && ((CDARichList) node).getDecoration().equals(list.getDecoration())) {
-                count++;
+    private fun getListOfTypeCount(context: AndroidContext, list: CDARichList): Long {
+        var count = 0
+        context.path?.forEach { node ->
+            if (node is CDARichList && node.decoration == list.decoration) {
+                count++
             }
         }
-        return count;
+        return count.toLong()
     }
-
 }

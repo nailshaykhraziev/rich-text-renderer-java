@@ -47,7 +47,16 @@ val PAGES = mutableListOf(
             CDARichOrderedList().addAll(
                 CDARichListItem().addAll(text("first item")),
                 CDARichListItem().addAll(text("second item")),
-                CDARichListItem().addAll(text("third item"))
+                CDARichListItem().addAll(text("third item")),
+                CDARichListItem().addAll(
+                    CDARichHyperLink("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=dogs")
+                        .addAll(text("Hyperlink to first item")),
+                    CDARichListItem().addAll(text("Normal Text"))
+                ),
+                CDARichListItem().addAll(
+                    CDARichHyperLink("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=cats")
+                        .addAll(text("Hyperlink to cats"))
+                )
             ),
             CDARichUnorderedList().addAll(
                 CDARichListItem().addAll(text("first item")),

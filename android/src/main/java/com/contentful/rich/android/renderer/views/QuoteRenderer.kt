@@ -1,26 +1,20 @@
-package com.contentful.rich.android.renderer.views;
+package com.contentful.rich.android.renderer.views
 
-import android.view.View;
+import android.view.View
+import com.contentful.java.cda.rich.CDARichNode
+import com.contentful.java.cda.rich.CDARichQuote
+import com.contentful.rich.android.AndroidContext
+import com.contentful.rich.android.AndroidProcessor
+import com.contentful.rich.android.R
 
-import com.contentful.java.cda.rich.CDARichNode;
-import com.contentful.java.cda.rich.CDARichQuote;
-import com.contentful.rich.android.AndroidContext;
-import com.contentful.rich.android.AndroidProcessor;
-import com.contentful.rich.android.R;
+class QuoteRenderer(
+    processor: AndroidProcessor<View>
+) : BlockRenderer(processor) {
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+    override fun canRender(context: AndroidContext?, node: CDARichNode): Boolean = node is CDARichQuote
 
-public class QuoteRenderer extends BlockRenderer {
-  public QuoteRenderer(@Nonnull AndroidProcessor<View> processor) {
-    super(processor);
-  }
-
-  @Override public boolean canRender(@Nullable AndroidContext context, @Nonnull CDARichNode node) {
-    return node instanceof CDARichQuote;
-  }
-
-  @Override protected View inflateRichLayout(@Nonnull AndroidContext context, @Nonnull CDARichNode node) {
-    return context.getInflater().inflate(R.layout.rich_quote_layout, null, false);
-  }
+    override fun inflateRichLayout(
+        context: AndroidContext,
+        node: CDARichNode
+    ): View = context.inflater.inflate(R.layout.rich_quote_layout, null, false)
 }
