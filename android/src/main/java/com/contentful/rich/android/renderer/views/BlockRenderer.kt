@@ -46,33 +46,35 @@ open class BlockRenderer(
                             viewGroup.addView(childView)
                         }
                     }
-                    childNode is CDARichHyperLink && childNode.data is String -> {
-                        val childLayout = childView.findViewById<ViewGroup>(R.id.rich_content)
-                        if (childLayout.childCount > 0) {
-                            val childTextView = childLayout.getChildAt(0) as TextView
-                            val span = UrlSpan(childNode.data as String)
-                            val text = lastTextView?.let {
-                                SpannableStringBuilder(it.text).append(childTextView.text)
-                            } ?: SpannableStringBuilder(childTextView.text)
+                    childNode is CDARichHyperLink -> {
+                        getDataUrl(childNode.data)?.let { data->
+                            val childLayout = childView.findViewById<ViewGroup>(R.id.rich_content)
+                            if (childLayout.childCount > 0) {
+                                val childTextView = childLayout.getChildAt(0) as TextView
+                                val span = UrlSpan(data)
+                                val text = lastTextView?.let {
+                                    SpannableStringBuilder(it.text).append(childTextView.text)
+                                } ?: SpannableStringBuilder(childTextView.text)
 
-                            context.config?.linkColor?.let {
-                                span.textColor = it
-                            }
+                                context.config?.linkColor?.let {
+                                    span.textColor = it
+                                }
 
-                            text.setSpan(
-                                span,
-                                lastTextView?.text?.length ?: 0,
-                                text.length,
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                            )
+                                text.setSpan(
+                                    span,
+                                    lastTextView?.text?.length ?: 0,
+                                    text.length,
+                                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
 
-                            lastTextView?.let {
-                                it.movementMethod = LinkMovementMethod.getInstance()
-                                it.text = text
-                            } ?: run {
-                                childTextView.text = text
-                                lastTextView = childTextView
-                                viewGroup.addView(childView)
+                                lastTextView?.let {
+                                    it.movementMethod = LinkMovementMethod.getInstance()
+                                    it.text = text
+                                } ?: run {
+                                    childTextView.text = text
+                                    lastTextView = childTextView
+                                    viewGroup.addView(childView)
+                                }
                             }
                         }
                     }
@@ -91,4 +93,10 @@ open class BlockRenderer(
         context: AndroidContext,
         node: CDARichNode
     ): View = context.inflater.inflate(R.layout.rich_block_layout, null, false)
+
+    private fun getDataUrl(data: Any): String? = when {
+        data is String -> data
+        data is Map<*, *> && data["uri"] is String -> data["uri"] as? String
+        else -> null
+    }
 }

@@ -6,6 +6,7 @@ import com.contentful.java.cda.CDAResource
 import com.contentful.java.cda.LocalizedResource
 import com.contentful.java.cda.rich.*
 import com.contentful.java.cda.rich.CDARichMark.*
+import com.google.gson.internal.LinkedTreeMap
 import java.lang.reflect.Field
 
 data class Page(val name: String, val document: CDARichDocument)
@@ -49,9 +50,21 @@ val PAGES = mutableListOf(
                 CDARichListItem().addAll(text("second item")),
                 CDARichListItem().addAll(text("third item")),
                 CDARichListItem().addAll(
-                    CDARichHyperLink("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=dogs")
-                        .addAll(text("Hyperlink to first item")),
-                    CDARichListItem().addAll(text("Normal Text"))
+                    CDARichParagraph().addAll(
+                        text("First Text"),
+                        CDARichHyperLink(
+                            LinkedTreeMap<String, String>().apply {
+                                put(
+                                    "uri",
+                                    "https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=cats"
+                                )
+                            }
+                        ).addAll(text("Hyperlink to first item")),
+                        text("Second Text")
+                    ),
+                    CDARichListItem().addAll(
+                        text("Normal Text")
+                    )
                 ),
                 CDARichListItem().addAll(
                     CDARichHyperLink("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=cats")
