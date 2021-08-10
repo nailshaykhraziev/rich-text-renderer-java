@@ -1,6 +1,7 @@
 package com.contentful.rich.android.renderer.views
 
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.contentful.java.cda.rich.CDARichHorizontalRule
 import com.contentful.java.cda.rich.CDARichNode
 import com.contentful.rich.android.AndroidContext
@@ -34,5 +35,9 @@ class HorizontalRuleRenderer(
     override fun render(
         context: AndroidContext,
         node: CDARichNode
-    ): View = context.inflater.inflate(R.layout.rich_horizontal_rule_layout, null)
+    ): View = context.inflater.inflate(R.layout.rich_horizontal_rule_layout, null).apply {
+        context.config?.textColor?.let {
+            findViewById<View>(R.id.divider).setBackgroundColor(context.androidContext.getColor(it))
+        }
+    }
 }

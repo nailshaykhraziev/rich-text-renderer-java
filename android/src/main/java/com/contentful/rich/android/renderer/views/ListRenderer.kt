@@ -79,7 +79,7 @@ class ListRenderer(
             decorators[currentPosition]
         }
         context.config?.also {
-            val color = ContextCompat.getColor(context.androidContext, it.textColor)
+            val color = context.androidContext.getColor(it.textColor)
             decoration.setTextColor(color)
             if (it.marginTop > 0) {
                 val layoutParams = RelativeLayout.LayoutParams(

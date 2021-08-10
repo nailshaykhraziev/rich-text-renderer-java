@@ -53,7 +53,7 @@ class TextRenderer(
         val content: TextView = result.findViewById(R.id.rich_content)
 
         context.config?.also { config ->
-            content.setTextColor(ContextCompat.getColor(context.androidContext, config.textColor))
+            content.setTextColor(context.androidContext.getColor(config.textColor))
 
 
             config.font?.also {
