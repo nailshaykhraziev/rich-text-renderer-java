@@ -5,6 +5,7 @@ import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import com.contentful.java.cda.rich.CDARichBlock
 import com.contentful.java.cda.rich.CDARichHyperLink
@@ -34,20 +35,30 @@ open class BlockRenderer(
         viewGroup: ViewGroup
     ) {
         var lastTextView: TextView? = null
+        var lastButton: Button? = null
         content.forEach { childNode ->
             val childView = processor.process(context, childNode)
             if (childView != null) {
                 when {
+                    childView is Button -> {
+                        lastButton = childView
+                        viewGroup.addView(childView)
+                    }
                     childView is TextView -> {
-                        lastTextView?.let {
-                            it.text = SpannableStringBuilder(it.text).append(childView.text)
-                        } ?: run {
-                            lastTextView = childView
+                        if (lastButton != null) {
                             viewGroup.addView(childView)
+                            lastButton = null
+                        } else {
+                            lastTextView?.let {
+                                it.text = SpannableStringBuilder(it.text).append(childView.text)
+                            } ?: run {
+                                lastTextView = childView
+                                viewGroup.addView(childView)
+                            }
                         }
                     }
                     childNode is CDARichHyperLink -> {
-                        getDataUrl(childNode.data)?.let { data->
+                        getDataUrl(childNode.data)?.let { data ->
                             val childLayout = childView.findViewById<ViewGroup>(R.id.rich_content)
                             if (childLayout.childCount > 0) {
                                 val childTextView = childLayout.getChildAt(0) as TextView
