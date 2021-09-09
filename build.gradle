@@ -1,15 +1,8 @@
-buildscript {
-    dependencies {
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-    }
-}
-
 plugins {
     id("base")
 }
 
 apply plugin: "java"
-apply plugin: "maven"
 
 allprojects {
     group = "com.github.contentful.rich"
